@@ -1,17 +1,15 @@
-import pdb
+import pdb,os,time,warnings
 import numpy as np
 from math import log
 from numpy.linalg import *
 from numpy.random import rand
-import matplotlib.pyplot as plt
-plt.ion()
 
 """
 Author: Alex Bujan
 Adapted from: Ella Bingham, 1999
 
-Orinal article citation:
-Ella Bingham and Aapo Hyvärinen, "A fast fixed-point algorithm for 
+Original article citation:
+Ella Bingham and Aapo Hyvaerinen, "A fast fixed-point algorithm for 
 independent component analysis of complex valued signals", 
 International Journal of Neural Systems, Vol. 10, No. 1 (February, 2000) 1-8
 
@@ -21,76 +19,76 @@ http://users.ics.aalto.fi/ella/publications/cfastica_public.m
 Date: 12/11/2015
 """
 
-def demo():
-    m = 50000
-    n = 5
-    exp1 = np.ceil(10*rand())
-    r = np.random.exponential(exp1,size=(n,m))
-    f = np.zeros(r.shape)
-    for j in xrange(n):
-        f[j] = np.random.uniform(-2*np.pi,2*np.pi,size=(1,m))
-    s = r*np.cos(f)+1j*np.sin(f)
+def main():
+    pass
 
-    W,shat,SSE = complex_FastICA(s,eps=.1,defl=False,plot=True)
+def abs_sqr(W,X):
+    return abs(W.conj().T.dot(X))**2
 
-def abs_sqr(w,x):
-    return np.abs(w.conj().T.dot(x))**2
-
-
-def complex_FastICA(X,eps=.1,defl=False,\
-                    plot=False,center=False,\
-                    maxcounter=30):
-    """
-    eps :  epsilon in G
-    defl:  when True components are estimated one by one (deflationary mode) 
-           otherwise all components are estimated simultaneously (default).
+def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
+                    max_iter=100,tol=1e-4,whiten=True,\
+                    w_init=None):
+    """Performs Fast Independent Component Analysis of complex-valued signals
+    
+    Parameters
+    ----------
+    X: array, shape (n_features,n_samples)
+    epsilon :  arbitrary constants in the "G" contrast function (see ref above)
+    algorithm : {'parallel', 'deflation'}, optional
+        Apply a parallel or deflational FASTICA algorithm.
+    
+    Returns
+    -------
+    W : array, shape (n_components, n_components)
+        Estimated un-mixing matrix.
+    K : array, shape (n_components, n_features) | None.
+        If whiten is 'True', K is the pre-whitening matrix projecting the data
+        onto the principal components. If whiten is 'False', K is 'None'.
+    EG : 
     """
     n,m  = X.shape
 
     '''
-    Signal whitening
+    Whitening of X
     '''
-    X    = inv(np.diag(X.std(1))).dot(X)
+    #TODO: add dimensionality reduction Sx
+    if whiten:
+        X-=X.mean(1,keepdims=True)
+        Ux,Sx = eig(np.cov(X))
+        K     = np.sqrt(inv(np.diag(Ux))).dot(Sx.conj().T)
+        X     = K.dot(X)
+        del Ux
+    else:
+        K = None
 
-    # Mixing using complex mixing matrix A
-    A    = rand(n,n)+1j*rand(n,n)
-    xold = A.dot(X)
-
-    '''
-    Whitening of x
-    '''
-    Dx,Ex = eig(np.cov(xold))
-    Q     = np.sqrt(inv(np.diag(Dx))).dot(Ex.conj().T)
-    x     = Q.dot(xold)
-    if center:
-        x-=x.mean(1,keepdims=True)
-
-
-    EG = np.ones((n,maxcounter))*np.nan
+    EG = np.ones((n,max_iter))*np.nan
 
     '''
     FIXED POINT ALGORITHM
     '''
-#    Components estimated one by one
-    if defl:
-        W           = np.zeros((n,n),dtype=np.complex)
+
+    if algorithm=='deflation':
+        #un-mixing matrix
+        W = np.zeros((n,n),dtype=np.complex)
 
         for k in xrange(n):
 
-            w           = rand(n,1)+1j*rand(n,1)
-            wold        = np.zeros((n,1),dtype=np.complex)
-            counter     = 0
+            w = rand(n,1)+1j*rand(n,1)
+            w/=norm(w)
+            n_iter  = 0
 
-            while (np.abs(np.abs(wold)-np.abs(w))).sum()>1e-4 and counter<maxcounter:
+            for i in xrange(max_iter):
 
                 wold = np.copy(w)
 
-                g    =  1./(eps+abs_sqr(w,x))
-                dg   = -1./(eps+abs_sqr(w,x))**2
+                #derivative of the contrast function
+                g  =  1./(epsilon+abs_sqr(w,X))
+                #derivative of g
+                dg = -1./(epsilon+abs_sqr(w,X))**2
 
-                w    = (x*np.repeat(np.conj(w.conj().T.dot(x)),n,0)*\
-                       np.repeat(g,n,0)).mean(1).reshape((n,1))-\
-                       (g+abs_sqr(w,x)*dg).mean()*w
+                w  = (X*np.repeat(np.conj(w.conj().T.dot(X)),n,0)*\
+                     np.repeat(g,n,0)).mean(1).reshape((n,1))-\
+                     (g+abs_sqr(w,X)*dg).mean()*w
 
                 w/=norm(w)
 
@@ -98,53 +96,52 @@ def complex_FastICA(X,eps=.1,defl=False,\
                 w-=W.dot(W.conj().T.dot(w))
                 w/=norm(w)
 
-                EG[k,counter] = (np.log(eps+abs_sqr(w,x))).mean()
+                EG[k,n_iter] = (np.log(epsilon+abs_sqr(w,X))).mean()
 
-                counter+=1
+                n_iter+=1
 
-            if np.isnan(EG[k,counter-1]-EG[k,counter-2]):
-                break
+                lim = (abs(abs(wold)-abs(w))).sum()
+                if lim<tol:
+                    break
 
-            W[:,k] = w.reshape((n,))
+            if n_iter==max_iter and lim>tol:
+                warnings.warn('FastICA did not converge. Consider increasing '
+                              'tolerance or the maximum number of iterations.')
 
-#    symmetric approach all components estimated simultaneously
-    else:
-        C          = np.cov(x)
-        W          = np.random.normal(size=(n,n))+\
-                     1j*np.random.normal(size=(n,n))
-        counter    = 0
-        while counter<maxcounter:
+            W[:,k] = w.ravel()
+
+    elif algorithm=='parallel':
+        #un-mixing matrix
+        W = np.random.normal(size=(n,n))+\
+            1j*np.random.normal(size=(n,n))
+        n_iter = 0
+        #needed for decorrelation
+        C = np.cov(X)
+
+        for i in xrange(max_iter):
 
             for j in xrange(n):
 
-                gWx  =  (1./(eps+abs_sqr(W[:,j],x))).reshape((1,m))
-                dgWx = -(1./(eps+abs_sqr(W[:,j],x))**2).reshape((1,m))
+                g  =  (1./(epsilon+abs_sqr(W[:,j],X))).reshape((1,m))
+                dg = -(1./(epsilon+abs_sqr(W[:,j],X))**2).reshape((1,m))
 
-                W[:,j]  = (x*np.repeat(np.conj(W[:,j].conj().T.dot(x)).reshape((1,m)),n,0)*\
-                          np.repeat(gWx,n,0)).mean(1)-\
-                          (gWx+abs_sqr(W[:,j],x)*dgWx).mean()*W[:,j]
+                W[:,j]  = (X*np.repeat(np.conj(W[:,j].conj().T.dot(X)).reshape((1,m)),n,0)*\
+                          np.repeat(g,n,0)).mean(1)-\
+                          (g+abs_sqr(W[:,j],X)*dg).mean()*W[:,j]
+                del g,dg
 
             # Symmetric decorrelation
-            D,E = eig(W.conj().T.dot(C.dot(W)))
-            W   = W.dot(E.dot(inv(np.sqrt(np.diag(D))).dot(E.conj().T)))
+            Uw,Sw = eig(W.conj().T.dot(C.dot(W)))
+            W   = W.dot(Sw.dot(inv(np.sqrt(np.diag(Uw))).dot(Sw.conj().T)))
+            del Uw,Sw
 
-            EG[:,counter] = (np.log(eps+abs_sqr(W,x))).mean(1)
+            EG[:,n_iter] = (np.log(epsilon+abs_sqr(W,X))).mean(1)
 
-            counter+=1
+            n_iter+=1
 
-    absQAHW = np.abs((Q.dot(A)).conj().T.dot(W))
-    maximum = np.max(absQAHW)
-    SSE      = (np.sum(absQAHW**2)-maximum**2+np.repeat(1-maximum,5)**2).sum()
-    shat = W.conj().T.dot(x)
+    S = Sx.dot(W.conj().T.dot(X))
 
-    if plot:
-        fig = plt.figure('demo')
-        ax = fig.add_subplot(111)
-        ax.plot(np.ma.masked_invalid(EG.T),'.-')
-        ax.set_title('Convergence of G')
-        plt.show()
-
-    return W,shat,SSE
+    return K,W,S,EG
 
 if __name__=='__main__':
-    demo()
+    main()
