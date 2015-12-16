@@ -33,7 +33,7 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
     Parameters
     ----------
     X: array, shape (n_features,n_samples)
-    epsilon :  arbitrary constants in the "G" contrast function (see ref above)
+    epsilon :  arbitrary constants in the contrast function G (see ref above)
     algorithm : {'parallel', 'deflation'}, optional
         Apply a parallel or deflational FASTICA algorithm.
     
@@ -44,7 +44,8 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
     K : array, shape (n_components, n_features) | None.
         If whiten is 'True', K is the pre-whitening matrix projecting the data
         onto the principal components. If whiten is 'False', K is 'None'.
-    EG : 
+    EG : arra, shape(N-components,max_iter)
+        Expectation of the contrast function G
     """
     n,m  = X.shape
 
