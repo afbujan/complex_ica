@@ -13,14 +13,14 @@ r = np.random.exponential(exp1,size=(n,m))
 f = np.zeros(r.shape)
 for j in xrange(n):
     f[j] = np.random.uniform(-2*np.pi,2*np.pi,size=(1,m))
-X = r*np.cos(f)+1j*np.sin(f)
-X    = inv(np.diag(X.std(1))).dot(X)
+Xu = r*np.cos(f)+1j*np.sin(f)
+Xu    = inv(np.diag(Xu.std(1))).dot(Xu)
 
 # Mixing using complex mixing matrix A
 A    = rand(n,n)+1j*rand(n,n)
-X = A.dot(X)
+Xm = A.dot(Xu)
 
-K,W,S,EG = cica.complex_FastICA(X,max_iter=30,algorithm='parallel')
+K,W,S,EG = cica.complex_FastICA(Xm,max_iter=30,algorithm='deflation')
 
 '''
 Compute the SSE
