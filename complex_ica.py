@@ -100,7 +100,7 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
                 w = w_init[:,k]
             else:
                 w = np.random.normal(size=(n,1))+\
-                1j*np.random.normal(size=(n,1))
+                    1j*np.random.normal(size=(n,1))
             w/=norm(w)
             n_iter  = 0
 
@@ -147,10 +147,12 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
             W = np.random.normal(size=(n,n))+\
                 1j*np.random.normal(size=(n,n))
         n_iter = 0
-        #needed for decorrelation
+        #cache the covariance matrix
         C = np.cov(X)
 
         for i in xrange(max_iter):
+
+            Wold = np.copy(W)
 
             for j in xrange(n):
 
@@ -168,6 +170,10 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
             Uw,Sw = eig(W.conj().T.dot(C.dot(W)))
             W   = W.dot(Sw.dot(inv(np.sqrt(np.diag(Uw))).dot(Sw.conj().T)))
             del Uw,Sw
+
+            lim = (abs(abs(Wold)-abs(W))).sum()
+            if lim < tol:
+                break
 
             EG[:,n_iter] = (np.log(epsilon+abs_sqr(W,X))).mean(1)
 
