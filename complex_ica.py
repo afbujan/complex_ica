@@ -37,7 +37,7 @@ def abs_sqr(w,x):
     return np.abs(w.conj().T.dot(x))**2
 
 
-def complex_FastICA(signal,eps=.1,defl=False,\
+def complex_FastICA(X,eps=.1,defl=False,\
                     plot=False,center=False,\
                     maxcounter=30):
     """
@@ -45,16 +45,16 @@ def complex_FastICA(signal,eps=.1,defl=False,\
     defl:  when True components are estimated one by one (deflationary mode) 
            otherwise all components are estimated simultaneously (default).
     """
-    n,m  = signal.shape
+    n,m  = X.shape
 
     '''
     Signal whitening
     '''
-    signal    = inv(np.diag(signal.std(1))).dot(signal)
+    X    = inv(np.diag(X.std(1))).dot(X)
 
-    # Mixing using complex mixing matrix A: each coefficient a_{jk} is complex
+    # Mixing using complex mixing matrix A
     A    = rand(n,n)+1j*rand(n,n)
-    xold = A.dot(signal)
+    xold = A.dot(X)
 
     '''
     Whitening of x
