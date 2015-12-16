@@ -5,6 +5,7 @@ from numpy.linalg import *
 from numpy.random import rand
 import matplotlib.pyplot as plt
 import complex_ica as cica
+reload(cica)
 
 m = 50000
 n = 5
@@ -20,7 +21,8 @@ Xu    = inv(np.diag(Xu.std(1))).dot(Xu)
 A    = rand(n,n)+1j*rand(n,n)
 Xm = A.dot(Xu)
 
-K,W,S,EG = cica.complex_FastICA(Xm,max_iter=30,algorithm='deflation')
+K,W,S,EG = cica.complex_FastICA(Xm,max_iter=30,algorithm='parallel',\
+                    n_components=n)
 
 '''
 Compute the SSE

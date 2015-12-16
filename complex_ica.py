@@ -19,41 +19,71 @@ http://users.ics.aalto.fi/ella/publications/cfastica_public.m
 Date: 12/11/2015
 """
 
-def main():
-    pass
-
 def abs_sqr(W,X):
     return abs(W.conj().T.dot(X))**2
 
 def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
                     max_iter=100,tol=1e-4,whiten=True,\
-                    w_init=None):
+                    w_init=None,n_components=None):
     """Performs Fast Independent Component Analysis of complex-valued signals
     
     Parameters
     ----------
+
     X: array, shape (n_features,n_samples)
-    epsilon :  arbitrary constants in the contrast function G (see ref above)
+
+    epsilon :  arbitrary constant in the contrast G function used in the
+        approximation to neg-entropy.
+
     algorithm : {'parallel', 'deflation'}, optional
         Apply a parallel or deflational FASTICA algorithm.
+
+    w_init : (n_components, n_components) array, optional
+        Initial un-mixing array of dimension (n.comp,n.comp).
+        If None (default) then an array of normal r.v.'s is used.
+
+    tol: float, optional
+        A positive scalar giving the tolerance at which the
+        un-mixing matrix is considered to have converged.
+
+    max_iter : int, optional
+        Maximum number of iterations.
     
+    whiten : boolean, optional
+        If True, perform an initial whitening of the data.
+        If False, the data is assumed to be already white.
+
+    n_components : int, optional
+        Number of components to extract. If None, n_components = n_features.
+
     Returns
     -------
+
     W : array, shape (n_components, n_components)
         Estimated un-mixing matrix.
+
     K : array, shape (n_components, n_features) | None.
         If whiten is 'True', K is the pre-whitening matrix projecting the data
         onto the principal components. If whiten is 'False', K is 'None'.
-    EG : arra, shape(N-components,max_iter)
-        Expectation of the contrast function G --> E{G(|W'*X|^2)}
-    """
-    n,m  = X.shape
 
-    #TODO: add dimensionality reduction Sx
+    EG : array, shape(N-components,max_iter)
+        Expectation of the contrast function E{G(|W'*X|^2)}. This array may be 
+        padded with NaNs at the end.
+
+    S : array, shape (n_samples, n_components)
+        Estimated sources. If whiten the sources are projected back onto the 
+        original signal space S = Sx W K X
+    """
+
+    n,m  = X.shape
+    
+    if n_components!=None:
+        n = n_components
+
     if whiten:
         X-=X.mean(1,keepdims=True)
         Ux,Sx = eig(np.cov(X))
-        K     = np.sqrt(inv(np.diag(Ux))).dot(Sx.conj().T)
+        K     = np.sqrt(inv(np.diag(Ux))).dot(Sx.conj().T)[:n]
         X     = K.dot(X)
         del Ux
     else:
@@ -66,8 +96,11 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
         W = np.zeros((n,n),dtype=np.complex)
 
         for k in xrange(n):
-
-            w = rand(n,1)+1j*rand(n,1)
+            if w_init!=None:
+                w = w_init[:,k]
+            else:
+                w = np.random.normal(size=(n,1))+\
+                1j*np.random.normal(size=(n,1))
             w/=norm(w)
             n_iter  = 0
 
@@ -83,6 +116,8 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
                 w  = (X*np.repeat(np.conj(w.conj().T.dot(X)),n,0)*\
                      np.repeat(g,n,0)).mean(1).reshape((n,1))-\
                      (g+abs_sqr(w,X)*dg).mean()*w
+
+                del g,dg
 
                 w/=norm(w)
 
@@ -106,8 +141,11 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
 
     elif algorithm=='parallel':
         #un-mixing matrix
-        W = np.random.normal(size=(n,n))+\
-            1j*np.random.normal(size=(n,n))
+        if w_init!=None:
+            W = w_init
+        else:
+            W = np.random.normal(size=(n,n))+\
+                1j*np.random.normal(size=(n,n))
         n_iter = 0
         #needed for decorrelation
         C = np.cov(X)
@@ -116,7 +154,9 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
 
             for j in xrange(n):
 
+                #derivative of the contrast function
                 g  =  (1./(epsilon+abs_sqr(W[:,j],X))).reshape((1,m))
+                #derivative of g
                 dg = -(1./(epsilon+abs_sqr(W[:,j],X))**2).reshape((1,m))
 
                 W[:,j]  = (X*np.repeat(np.conj(W[:,j].conj().T.dot(X)).reshape((1,m)),n,0)*\
@@ -133,9 +173,9 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
 
             n_iter+=1
 
-    S = Sx.dot(W.conj().T.dot(X))
+    if whiten:
+        S = Sx[:,:n].dot(W.conj().T.dot(X))
+    else:
+        S = W.conj().T.dot(X)
 
     return K,W,S,EG
-
-if __name__=='__main__':
-    main()
