@@ -32,7 +32,8 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
 
     X: array, shape (n_features,n_samples)
 
-    epsilon :  arbitrary constant in the contrast G function used in the
+    epsilon : float, optional
+        Arbitrary constant in the contrast G function used in the
         approximation to neg-entropy.
 
     algorithm : {'parallel', 'deflation'}, optional
@@ -92,7 +93,7 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
     EG = np.ones((n,max_iter))*np.nan
 
     if algorithm=='deflation':
-        #un-mixing matrix
+
         W = np.zeros((n,n),dtype=np.complex)
 
         for k in xrange(n):
@@ -101,7 +102,9 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
             else:
                 w = np.random.normal(size=(n,1))+\
                     1j*np.random.normal(size=(n,1))
+
             w/=norm(w)
+
             n_iter  = 0
 
             for i in xrange(max_iter):
@@ -113,9 +116,8 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
                 #derivative of g
                 dg = -1./(epsilon+abs_sqr(w,X))**2
 
-                w  = (X*np.repeat(np.conj(w.conj().T.dot(X)),n,0)*\
-                     np.repeat(g,n,0)).mean(1).reshape((n,1))-\
-                     (g+abs_sqr(w,X)*dg).mean()*w
+                w  = (X * (w.conj().T.dot(X)).conj() * g).mean(1).reshape((n,1))-\
+                     (g + abs_sqr(w,X) * dg).mean()*w
 
                 del g,dg
 
@@ -140,13 +142,15 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
             W[:,k] = w.ravel()
 
     elif algorithm=='parallel':
-        #un-mixing matrix
+
         if w_init!=None:
             W = w_init
         else:
             W = np.random.normal(size=(n,n))+\
                 1j*np.random.normal(size=(n,n))
+
         n_iter = 0
+
         #cache the covariance matrix
         C = np.cov(X)
 
@@ -161,9 +165,8 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
                 #derivative of g
                 dg = -(1./(epsilon+abs_sqr(W[:,j],X))**2).reshape((1,m))
 
-                W[:,j]  = (X*np.repeat(np.conj(W[:,j].conj().T.dot(X)).reshape((1,m)),n,0)*\
-                          np.repeat(g,n,0)).mean(1)-\
-                          (g+abs_sqr(W[:,j],X)*dg).mean()*W[:,j]
+                W[:,j]  = (X * (W[:,j].conj().T.dot(X)).conj() * g).mean(1)-\
+                          (g + abs_sqr(W[:,j],X) * dg).mean() * W[:,j]
                 del g,dg
 
             # Symmetric decorrelation
@@ -171,13 +174,17 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
             W   = W.dot(Sw.dot(inv(np.sqrt(np.diag(Uw))).dot(Sw.conj().T)))
             del Uw,Sw
 
+            EG[:,n_iter] = (np.log(epsilon+abs_sqr(W,X))).mean(1)
+
+            n_iter+=1
+
             lim = (abs(abs(Wold)-abs(W))).sum()
             if lim < tol:
                 break
 
-            EG[:,n_iter] = (np.log(epsilon+abs_sqr(W,X))).mean(1)
-
-            n_iter+=1
+        if n_iter==max_iter and lim>tol:
+            warnings.warn('FastICA did not converge. Consider increasing '
+                          'tolerance or the maximum number of iterations.')
 
     if whiten:
         S = Sx[:,:n].dot(W.conj().T.dot(X))

@@ -21,7 +21,7 @@ Xu    = inv(np.diag(Xu.std(1))).dot(Xu)
 A    = rand(n,n)+1j*rand(n,n)
 Xm = A.dot(Xu)
 
-K,W,S,EG = cica.complex_FastICA(Xm,max_iter=30,algorithm='parallel',\
+K,W,S,EG = cica.complex_FastICA(Xm,max_iter=30,algorithm='deflation',\
                     n_components=n)
 
 '''
