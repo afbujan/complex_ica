@@ -48,9 +48,6 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
     """
     n,m  = X.shape
 
-    '''
-    Whitening of X
-    '''
     #TODO: add dimensionality reduction Sx
     if whiten:
         X-=X.mean(1,keepdims=True)
@@ -62,10 +59,6 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
         K = None
 
     EG = np.ones((n,max_iter))*np.nan
-
-    '''
-    FIXED POINT ALGORITHM
-    '''
 
     if algorithm=='deflation':
         #un-mixing matrix
