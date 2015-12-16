@@ -45,7 +45,7 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
         If whiten is 'True', K is the pre-whitening matrix projecting the data
         onto the principal components. If whiten is 'False', K is 'None'.
     EG : arra, shape(N-components,max_iter)
-        Expectation of the contrast function G
+        Expectation of the contrast function G --> E{G(|W'*X|^2)}
     """
     n,m  = X.shape
 
