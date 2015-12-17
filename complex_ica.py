@@ -40,8 +40,8 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
         Apply a parallel or deflational FASTICA algorithm.
 
     w_init : (n_components, n_components) array, optional
-        Initial un-mixing array of dimension (n.comp,n.comp).
-        If None (default) then an array of normal r.v.'s is used.
+        Initial un-mixing array.If None (default) then an 
+        array of normally distributed r.v.s is used.
 
     tol: float, optional
         A positive scalar giving the tolerance at which the
