@@ -72,8 +72,7 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
         padded with NaNs at the end.
 
     S : array, shape (n_samples, n_components)
-        Estimated sources. If whiten the sources are projected back onto the 
-        original signal space S = Sx W K X
+        Estimated sources (S = W K X).
     """
 
     n,m  = X.shape
@@ -82,11 +81,12 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
         n = n_components
 
     if whiten:
+        Xold = np.copy(X)
         X-=X.mean(1,keepdims=True)
         Ux,Sx = eig(np.cov(X))
         K     = np.sqrt(inv(np.diag(Ux))).dot(Sx.conj().T)[:n]
         X     = K.dot(X)
-        del Ux
+        del Ux,Sx
     else:
         K = None
 
@@ -186,9 +186,6 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
             warnings.warn('FastICA did not converge. Consider increasing '
                           'tolerance or the maximum number of iterations.')
 
-    if whiten:
-        S = Sx[:,:n].dot(W.conj().T.dot(X))
-    else:
-        S = W.conj().T.dot(X)
+    S = W.conj().T.dot(X)
 
     return K,W,S,EG

@@ -8,6 +8,8 @@ import matplotlib as mpl
 from mpl_toolkits.mplot3d import axes3d
 import complex_ica as cica
 reload(cica)
+plt.ion()
+
 
 m = 50000
 n = 5
@@ -19,6 +21,9 @@ for j in xrange(n):
 Xu = r*np.cos(f)+1j*np.sin(f)
 # Standardize data
 Xu = inv(np.diag(Xu.std(1))).dot(Xu)
+
+
+
 # Mixing using complex mixing matrix A
 A  = rand(n,n)+1j*rand(n,n)
 Xm = A.dot(Xu)
@@ -35,21 +40,35 @@ SSE      = (np.sum(absKAHW**2)-maximum**2+np.repeat(1-maximum,5)**2).sum()
 
 print SSE
 
-fig     = plt.figure('demo')
+fig = plt.figure('demo')
+fig.clf()
+
 ax      = fig.add_subplot(121)
-ax.plot(np.ma.masked_invalid(EG.T),'.-')
+for j in xrange(n):
+    ax.plot(np.ma.masked_invalid(EG[j]),'.-',label='c_%i'%(j+1))
 ax.set_title('Convergence of G')
+ax.set_ylabel('E{G(|W.T*X|^2)}')
+ax.set_xlabel('iteration #')
+plt.legend(loc='best')
+ntp=20
 
-ntp=100
-ax2  = fig.add_subplot(122,projection='3d')
-z    = np.linspace(-2,2,ntp)
-x    = np.imag(Xu[0,:ntp])
-y    = np.real(Xu[0,:ntp])
-ax2.plot(x,y,z,'.-')
+#ax2  = fig.add_subplot(122,projection='3d')
+#z    = np.linspace(-2,2,ntp)
+#x    = np.imag(Xu[0,:ntp])
+#y    = np.real(Xu[0,:ntp])
+#ax2.plot(x,y,z,'.-')
 
-x    = np.imag(S[0,:ntp])
-y    = np.real(S[0,:ntp])
-ax2.plot(x,y,z,'.-')
+#x    = np.imag(S[0,:ntp])
+#y    = np.real(S[0,:ntp])
+#ax2.plot(x,y,z,'.-')
+#ax2.set_ylabel('Imag')
+#ax2.set_xlabel('Real')
+
+ax2  = fig.add_subplot(122)
+ax2.plot(np.abs(Xu[:,:ntp].T),lw=3,alpha=.2,color='k')
+ax2.plot(np.abs(S[:,:ntp].T),'--',color='r')
+ax2.set_ylabel('Amplitude')
+ax2.set_xlabel('Time (a.u.)')
 
 plt.show()
 
