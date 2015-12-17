@@ -34,12 +34,12 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
     ----------
 
     X : array, shape (n_features,n_samples)
-        Input signal X = A S, where A is the mixing matrix and 
-        S the sources.
+        Input signal X = A S, where A is the mixing 
+        matrix and S the latent sources.
 
     epsilon : float, optional
-        Arbitrary constant in the contrast G function used in the
-        approximation to neg-entropy.
+        Arbitrary constant in the contrast G function 
+        used in the approximation to neg-entropy.
 
     algorithm : {'parallel', 'deflation'}, optional
         Apply a parallel or deflational FASTICA algorithm.
