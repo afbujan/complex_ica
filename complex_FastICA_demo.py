@@ -28,7 +28,8 @@ Xu = inv(np.diag(Xu.std(1))).dot(Xu)
 A  = rand(n,n)+1j*rand(n,n)
 Xm = A.dot(Xu)
 
-K,W,S,EG = cica.complex_FastICA(Xm,max_iter=30,algorithm='deflation',\
+alg = 'parallel'#deflation
+K,W,S,EG = cica.complex_FastICA(Xm,max_iter=30,algorithm=alg,\
                     n_components=n)
 
 '''
@@ -46,8 +47,7 @@ fig.clf()
 ax      = fig.add_subplot(121)
 for j in xrange(n):
     ax.plot(np.ma.masked_invalid(EG[j]),'.-',label='c_%i'%(j+1))
-ax.set_title('Convergence of G')
-ax.set_ylabel('E{G(|W.T*X|^2)}')
+ax.set_ylabel('E[G(|W.T*X|^2)]')
 ax.set_xlabel('iteration #')
 plt.legend(loc='best')
 ntp=20
@@ -64,10 +64,16 @@ ntp=20
 #ax2.set_ylabel('Imag')
 #ax2.set_xlabel('Real')
 
-ax2  = fig.add_subplot(122)
+ax2  = fig.add_subplot(222)
 ax2.plot(np.abs(Xu[:,:ntp].T),lw=3,alpha=.2,color='k')
 ax2.plot(np.abs(S[:,:ntp].T),'--',color='r')
 ax2.set_ylabel('Amplitude')
+ax2.set_xlabel('Time (a.u.)')
+
+ax2  = fig.add_subplot(224)
+ax2.plot(np.angle(Xu[:,:ntp]).T,lw=3,alpha=.2,color='k')
+ax2.plot(np.angle(S[:,:ntp]).T,'--',color='b')
+ax2.set_ylabel('Angle')
 ax2.set_xlabel('Time (a.u.)')
 
 plt.show()

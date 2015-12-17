@@ -17,6 +17,8 @@ Original code url:
 http://users.ics.aalto.fi/ella/publications/cfastica_public.m
 
 Date: 12/11/2015
+
+TODO: include arbitrary contrast functions
 """
 
 def abs_sqr(W,X):
@@ -25,12 +27,15 @@ def abs_sqr(W,X):
 def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
                     max_iter=100,tol=1e-4,whiten=True,\
                     w_init=None,n_components=None):
-    """Performs Fast Independent Component Analysis of complex-valued signals
-    
+    """Performs Fast Independent Component Analysis of complex-valued 
+        signals
+
     Parameters
     ----------
 
-    X: array, shape (n_features,n_samples)
+    X : array, shape (n_features,n_samples)
+        Input signal X = A S, where A is the mixing matrix and 
+        S the sources.
 
     epsilon : float, optional
         Arbitrary constant in the contrast G function used in the
@@ -55,7 +60,8 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
         If False, the data is assumed to be already white.
 
     n_components : int, optional
-        Number of components to extract. If None, n_components = n_features.
+        Number of components to extract. If None, 
+        n_components = n_features.
 
     Returns
     -------
@@ -64,12 +70,13 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
         Estimated un-mixing matrix.
 
     K : array, shape (n_components, n_features) | None.
-        If whiten is 'True', K is the pre-whitening matrix projecting the data
-        onto the principal components. If whiten is 'False', K is 'None'.
+        If whiten is 'True', K is the pre-whitening matrix 
+        projecting the data onto the principal components. 
+        If whiten is 'False', K is 'None'.
 
     EG : array, shape(N-components,max_iter)
-        Expectation of the contrast function E{G(|W'*X|^2)}. This array may be 
-        padded with NaNs at the end.
+        Expectation of the contrast function E[G(|W'*X|^2)]. 
+        This array may be padded with NaNs at the end.
 
     S : array, shape (n_samples, n_components)
         Estimated sources (S = W K X).
@@ -81,7 +88,6 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
         n = n_components
 
     if whiten:
-        Xold = np.copy(X)
         X-=X.mean(1,keepdims=True)
         Ux,Sx = eig(np.cov(X))
         K     = np.sqrt(inv(np.diag(Ux))).dot(Sx.conj().T)[:n]
@@ -171,7 +177,7 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
 
             # Symmetric decorrelation
             Uw,Sw = eig(W.conj().T.dot(C.dot(W)))
-            W   = W.dot(Sw.dot(inv(np.sqrt(np.diag(Uw))).dot(Sw.conj().T)))
+            W     = W.dot(Sw.dot(inv(np.sqrt(np.diag(Uw))).dot(Sw.conj().T)))
             del Uw,Sw
 
             EG[:,n_iter] = (np.log(epsilon+abs_sqr(W,X))).mean(1)
