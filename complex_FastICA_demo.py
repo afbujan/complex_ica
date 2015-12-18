@@ -8,6 +8,9 @@ import matplotlib as mpl
 from mpl_toolkits.mplot3d import axes3d
 import complex_ica as cica
 reload(cica)
+import complex_ica_jade as cicaj
+reload(cicaj)
+
 plt.ion()
 
 
@@ -28,19 +31,19 @@ Xu = inv(np.diag(Xu.std(1))).dot(Xu)
 A  = rand(n,n)+1j*rand(n,n)
 Xm = A.dot(Xu)
 
-alg = 'parallel'#deflation
+alg = 'parallel'#'deflation'
 K,W,S,EG = cica.complex_FastICA(Xm,max_iter=30,algorithm=alg,\
                     n_components=n)
 
-'''
-Compute the SSE
-'''
+#Compute the SSE
+
 absKAHW  = np.abs((K.dot(A)).conj().T.dot(W))
 maximum  = np.max(absKAHW)
 SSE      = (np.sum(absKAHW**2)-maximum**2+np.repeat(1-maximum,5)**2).sum()
 
 print SSE
 
+ntp=20
 fig = plt.figure('demo')
 fig.clf()
 
@@ -50,19 +53,6 @@ for j in xrange(n):
 ax.set_ylabel('E[G(|W.T*X|^2)]')
 ax.set_xlabel('iteration #')
 plt.legend(loc='best')
-ntp=20
-
-#ax2  = fig.add_subplot(122,projection='3d')
-#z    = np.linspace(-2,2,ntp)
-#x    = np.imag(Xu[0,:ntp])
-#y    = np.real(Xu[0,:ntp])
-#ax2.plot(x,y,z,'.-')
-
-#x    = np.imag(S[0,:ntp])
-#y    = np.real(S[0,:ntp])
-#ax2.plot(x,y,z,'.-')
-#ax2.set_ylabel('Imag')
-#ax2.set_xlabel('Real')
 
 ax2  = fig.add_subplot(222)
 ax2.plot(np.abs(Xu[:,:ntp].T),lw=3,alpha=.2,color='k')
