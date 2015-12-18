@@ -6,10 +6,8 @@ from numpy.random import rand
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import axes3d
-import complex_ica as cica
+import complex_FastICA as cica
 reload(cica)
-import complex_ica_jade as cicaj
-reload(cicaj)
 
 plt.ion()
 
