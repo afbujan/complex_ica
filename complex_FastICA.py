@@ -1,3 +1,4 @@
+from __future__ import division
 import pdb,os,time,warnings
 import numpy as np
 from math import log
@@ -74,7 +75,7 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
         projecting the data onto the principal components. 
         If whiten is 'False', K is 'None'.
 
-    EG : array, shape(N-components,max_iter)
+    EG : array, shape(n_components,max_iter)
         Expectation of the contrast function E[G(|W'*X|^2)]. 
         This array may be padded with NaNs at the end.
 
@@ -118,19 +119,19 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
                 wold = np.copy(w)
 
                 #derivative of the contrast function
-                g  =  1./(epsilon+abs_sqr(w,X))
+                g  =  1/(epsilon+abs_sqr(w,X))
                 #derivative of g
-                dg = -1./(epsilon+abs_sqr(w,X))**2
+                dg = -1/(epsilon+abs_sqr(w,X))**2
 
                 w  = (X * (w.conj().T.dot(X)).conj() * g).mean(1).reshape((n,1))-\
-                     (g + abs_sqr(w,X) * dg).mean()*w
+                     (g + abs_sqr(w,X) * dg).mean() * w
 
                 del g,dg
 
                 w/=norm(w)
 
                 # Decorrelation
-                w-=W.dot(W.conj().T.dot(w))
+                w-=W.dot(W.conj().T).dot(w)
                 w/=norm(w)
 
                 EG[k,n_iter] = (np.log(epsilon+abs_sqr(w,X))).mean()
@@ -167,9 +168,9 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
             for j in xrange(n):
 
                 #derivative of the contrast function
-                g  =  (1./(epsilon+abs_sqr(W[:,j],X))).reshape((1,m))
+                g  =  (1/(epsilon+abs_sqr(W[:,j],X))).reshape((1,m))
                 #derivative of g
-                dg = -(1./(epsilon+abs_sqr(W[:,j],X))**2).reshape((1,m))
+                dg = -(1/(epsilon+abs_sqr(W[:,j],X))**2).reshape((1,m))
 
                 W[:,j]  = (X * (W[:,j].conj().T.dot(X)).conj() * g).mean(1)-\
                           (g + abs_sqr(W[:,j],X) * dg).mean() * W[:,j]
