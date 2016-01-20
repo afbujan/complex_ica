@@ -31,7 +31,7 @@ def jade(X,m=None,max_iter=100,nem=None):
     Date: 20/01/2016
     """
 
-    n,T     = X.shape
+    n,T = X.shape
 
     if m==None:
         m = n
