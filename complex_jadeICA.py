@@ -14,38 +14,38 @@ def jade(X,m=None,max_iter=100,nem=None,tol=None):
     ----------
 
     X : array, shape (n_mixtures, n_samples)
-        matrix containing the mixtures
+        Matrix containing the mixtures
 
     m : int, optional
-        number of sources. If None, equals the number of features.
+        Number of sources. If None, equals the number of mixtures
 
     max_iter : int, optional
-        maximum number of iteration to converge
+        Maximum number of iterations
 
     nem : int, optional
-        number of eigen-matrices to be diagonalized
+        Number of eigen-matrices to be diagonalized
 
     tol : float, optional
-        threshold for stopping joint diagonalization
+        Threshold for stopping joint diagonalization
 
     Returns
     -------
 
     A : array, shape (n_mixtures, n_sources) 
-        estimate of the mixing matrix
+        Estimate of the mixing matrix
 
     S : array, shape (n_sources, n_samples) 
-        estimate of the source signals
+        Estimate of the source signals
 
     V : array, shape (n_sources, n_mixtures)
-        estimate of the un-mixing matrix.
+        Estimate of the un-mixing matrix
 
     W : array, shape (n_components, n_mixtures)
-        sphering matrix.
+        Sphering matrix
 
 
-    Comments
-    --------
+    Notes
+    -----
 
     Original script in Matlab - version 1.6.  Copyright: JF Cardoso.
     Url: http://perso.telecom-paristech.fr/~cardoso/Algo/Jade/jade.m
