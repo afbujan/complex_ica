@@ -70,7 +70,7 @@ def complex_FastICA(X,epsilon=.1,algorithm='parallel',\
     W : array, shape (n_components, n_components)
         Estimated un-mixing matrix.
 
-    K : array, shape (n_components, n_features) | None.
+    K : array, shape (n_components, n_features)
         If whiten is 'True', K is the pre-whitening matrix 
         projecting the data onto the principal components. 
         If whiten is 'False', K is 'None'.
