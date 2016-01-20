@@ -19,7 +19,10 @@ def jade(X,m=None,max_iter=100,nem=None,tol=None):
     m : int, optional
         number of sources. If None, equals the number of features.
 
-    mem : int, optional
+    max_iter : int, optional
+        maximum number of iteration to converge
+
+    nem : int, optional
         number of eigen-matrices to be diagonalized
 
     tol : float, optional
