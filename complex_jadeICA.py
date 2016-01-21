@@ -47,11 +47,12 @@ def jade(X,m=None,max_iter=100,nem=None,tol=None):
     Notes
     -----
 
-    Original script in Matlab - version 1.6.  Copyright: JF Cardoso.
+    Original script in Matlab - version 1.6. Copyright: JF Cardoso.
     Url: http://perso.telecom-paristech.fr/~cardoso/Algo/Jade/jade.m
-    Citation: Cardoso, Jean-François, and Antoine Souloumiac. "Blind 
-    beamforming for non-Gaussian signals." IEE Proceedings F (Radar 
-    and Signal Processing). Vol. 140. No. 6. IET Digital Library, 1993.
+    Citation: Cardoso, Jean-Francois, and Antoine Souloumiac. 'Blind 
+    beamforming for non-Gaussian signals.'IEE Proceedings F (Radar 
+    and Signal Processing). Vol. 140. No. 6. IET Digital Library, 
+    1993.
 
     Author (python script): Alex Bujan <afbujan@gmail.com>
     Date: 20/01/2016
